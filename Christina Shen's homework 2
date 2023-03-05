@@ -1,0 +1,112 @@
+Sub sheetSummary():
+
+Dim wb As Workbook
+Set wb = ThisWorkbook
+
+Dim ws As Worksheet
+For Each ws In wb.Worksheets
+    ws.Activate
+    Dim ticker As String
+    Dim openp_begin As Double
+    Dim closep_end As Double
+    Dim totalvolume As LongLong
+    Dim summaryticker As String
+    Dim yearlychange As Double
+    Dim percentagechange As Double
+    
+    Cells(1, 9).Value = "ticker symbol"
+    Cells(1, 10).Value = "yearly change($)"
+    Cells(1, 11).Value = "percentage change"
+    Cells(1, 12).Value = "total stock volume($)"
+    Cells(1, 15).Value = "ticker symbol"
+    Cells(1, 16).Value = "Value"
+    Cells(2, 14).Value = "Greatest%increase"
+    Cells(3, 14).Value = "Greatest%decrease"
+    Cells(4, 14).Value = "Greatest total volume"
+    summaryticker = 2
+
+    'Check max number of rows'
+    Dim no_of_rows As Long
+    no_of_rows = ws.UsedRange.Rows.Count
+    'Cells(1, 19).Value = no_of_rows'
+
+    For i = 2 To no_of_rows
+        'init i with first ticker'
+        If i = 2 Then
+            openp_begin = Cells(i, 3).Value
+        End If
+
+        If Cells(i + 1, 1).Value <> Cells(i, 1).Value Then
+            'assign old ticker information'
+            ticker = Cells(i, 1).Value
+            Cells(summaryticker, 9).Value = ticker
+    
+            'assign old ticker value'
+            closep_end = Cells(i, 6).Value
+     
+            yearlychange = closep_end - openp_begin
+            Cells(summaryticker, 10).Value = yearlychange
+            'Color formating'
+            If (yearlychange >= 0) Then
+                Cells(summaryticker, 10).Interior.ColorIndex = 4
+            Else
+                Cells(summaryticker, 10).Interior.ColorIndex = 3
+            End If
+    
+            'percentage calculation'
+            percentagechange = (yearlychange / openp_begin)
+            Cells(summaryticker, 11).NumberFormat = "0.00%"
+            Cells(summaryticker, 11).Value = percentagechange
+
+            openp_begin = Cells(i + 1, 3)
+        
+            Cells(summaryticker, 12).Value = totalvolume
+    
+            'Reset for next usage'
+            totalvolume = 0
+            percentagechange = 0
+            yearlychange = 0
+            'go to next row'
+            summaryticker = summaryticker + 1
+        Else
+            totalvolume = totalvolume + Cells(i, 7).Value
+        End If
+    Next i
+
+    Dim MAXPERCENT As Double
+    Dim MINPERCENT As Double
+    Dim MAXVOLUME As LongLong
+    
+    
+    For j = 2 To summaryticker
+        If (j = 2) Then
+            MAXPERCENT = Cells(j, 11).Value()
+            MINPERCENT = Cells(j, 11).Value()
+            MAXVOLUME = Cells(j, 12).Value()
+        End If
+        
+
+        If MAXPERCENT < Cells(j, 11).Value Then
+            Range("p2").Value = Cells(j, 11).Value
+            Range("o2").Value = Cells(j, 9).Value
+            MAXPERCENT = Cells(j, 11).Value
+            Range("p2").NumberFormat = "0.00%"
+        End If
+
+        If MINPERCENT > Cells(j, 11).Value Then
+            Range("p3").Value = Cells(j, 11).Value
+            Range("o3").Value = Cells(j, 9).Value
+            MINPERCENT = Cells(j, 11).Value
+            Range("p3").NumberFormat = "0.00%"
+        End If
+
+        If MAXVOLUME < Cells(j, 12).Value Then
+            Range("p4").Value = Cells(j, 12).Value
+            Range("o4").Value = Cells(j, 9).Value
+            MAXVOLUME = Cells(j, 12).Value
+        End If
+        
+        
+    Next j
+Next ws
+End Sub
